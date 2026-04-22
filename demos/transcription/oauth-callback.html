@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dropbox OAuth Callback</title>
+  </head>
+  <body>
+    <p>Completing Dropbox authorization...</p>
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const payload = {
+          type: "riviera-dropbox-oauth-result",
+          code: params.get("code"),
+          state: params.get("state"),
+          error: params.get("error"),
+          errorDescription: params.get("error_description"),
+        };
+        const targetOrigin = window.location.origin;
+
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(payload, targetOrigin);
+        }
+
+        window.close();
+      })();
+    </script>
+  </body>
+</html>

@@ -4,6 +4,8 @@ const DROPBOX_OAUTH_AUTHORIZE_URL = "https://www.dropbox.com/oauth2/authorize";
 const DROPBOX_OAUTH_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
 const AUTH_STORAGE_KEY = "riviera_demo_dropbox_auth";
 const PKCE_STORAGE_KEY = "riviera_demo_dropbox_pkce";
+const OAUTH_POPUP_NAME = "riviera-dropbox-oauth";
+const OAUTH_MESSAGE_TYPE = "riviera-dropbox-oauth-result";
 const REQUIRED_SCOPES = ["files.content.read", "files.content.write"];
 
 const form = document.querySelector("#transcription-form");
@@ -31,13 +33,14 @@ if (form) {
   let latestTranscript = "";
   let latestJson = "";
   let authState = loadStoredAuth();
+  let oauthPopup = null;
 
   function getDropboxAppKey() {
     return runtimeConfig.dropboxAppKey || "";
   }
 
   function getRedirectUri() {
-    return window.location.origin + window.location.pathname;
+    return new URL("oauth-callback.html", window.location.href).toString();
   }
 
   function getSelectedMode() {
@@ -261,7 +264,31 @@ if (form) {
       state,
     });
 
-    window.location.assign(`${DROPBOX_OAUTH_AUTHORIZE_URL}?${params.toString()}`);
+    const authorizeUrl = `${DROPBOX_OAUTH_AUTHORIZE_URL}?${params.toString()}`;
+    const popupWidth = 520;
+    const popupHeight = 720;
+    const popupLeft = Math.max(window.screenX + (window.outerWidth - popupWidth) / 2, 0);
+    const popupTop = Math.max(window.screenY + (window.outerHeight - popupHeight) / 2, 0);
+    const popupFeatures = [
+      `width=${popupWidth}`,
+      `height=${popupHeight}`,
+      `left=${Math.round(popupLeft)}`,
+      `top=${Math.round(popupTop)}`,
+      "resizable=yes",
+      "scrollbars=yes",
+    ].join(",");
+
+    oauthPopup = window.open(authorizeUrl, OAUTH_POPUP_NAME, popupFeatures);
+
+    if (oauthPopup) {
+      oauthPopup.focus();
+      resetStatusLog();
+      setStatus("Authorizing", "progress");
+      pushStatus("Waiting for Dropbox authorization in the popup window...");
+      return;
+    }
+
+    window.location.assign(authorizeUrl);
   }
 
   async function apiFetch(url, options, errorPrefix) {
@@ -288,25 +315,7 @@ if (form) {
     return parsed;
   }
 
-  async function finishOauthFlowIfPresent() {
-    const params = new URLSearchParams(window.location.search);
-    const authError = params.get("error");
-    const authErrorDescription = params.get("error_description");
-    const code = params.get("code");
-    const state = params.get("state");
-
-    if (authError) {
-      resetStatusLog();
-      setStatus("Error", "danger");
-      pushStatus(`Dropbox OAuth error: ${authErrorDescription || authError}`);
-      window.history.replaceState({}, document.title, getRedirectUri());
-      return;
-    }
-
-    if (!code) {
-      return;
-    }
-
+  async function finishOauthFlow(code, state) {
     const appKey = getDropboxAppKey();
     const pkceState = loadPkceState();
 
@@ -314,7 +323,6 @@ if (form) {
       resetStatusLog();
       setStatus("Error", "danger");
       pushStatus("Missing PKCE state. Start the Dropbox connection flow again.");
-      window.history.replaceState({}, document.title, getRedirectUri());
       return;
     }
 
@@ -322,7 +330,6 @@ if (form) {
       resetStatusLog();
       setStatus("Error", "danger");
       pushStatus("OAuth state mismatch. The login flow was not verified.");
-      window.history.replaceState({}, document.title, getRedirectUri());
       return;
     }
 
@@ -367,9 +374,61 @@ if (form) {
       pushStatus(error.message);
     } finally {
       clearPkceState();
-      window.history.replaceState({}, document.title, getRedirectUri());
       updateAuthUi();
     }
+  }
+
+  async function finishOauthFlowIfPresent() {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("error");
+    const authErrorDescription = params.get("error_description");
+    const code = params.get("code");
+    const state = params.get("state");
+    const cleanUrl = window.location.origin + window.location.pathname;
+
+    if (authError) {
+      resetStatusLog();
+      setStatus("Error", "danger");
+      pushStatus(`Dropbox OAuth error: ${authErrorDescription || authError}`);
+      window.history.replaceState({}, document.title, cleanUrl);
+      return;
+    }
+
+    if (!code) {
+      return;
+    }
+
+    await finishOauthFlow(code, state);
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+
+  function handleOauthMessage(event) {
+    if (event.origin !== window.location.origin) {
+      return;
+    }
+
+    const payload = event.data;
+
+    if (!payload || payload.type !== OAUTH_MESSAGE_TYPE) {
+      return;
+    }
+
+    if (oauthPopup && !oauthPopup.closed) {
+      oauthPopup.close();
+    }
+
+    if (payload.error) {
+      resetStatusLog();
+      setStatus("Error", "danger");
+      pushStatus(`Dropbox OAuth error: ${payload.errorDescription || payload.error}`);
+      clearPkceState();
+      return;
+    }
+
+    finishOauthFlow(payload.code, payload.state).catch((error) => {
+      setStatus("Error", "danger");
+      pushStatus(error.message);
+    });
   }
 
   async function uploadFileToDropbox(accessToken, file) {
@@ -629,6 +688,7 @@ if (form) {
     input.addEventListener("change", updateModeUI);
   });
 
+  window.addEventListener("message", handleOauthMessage);
   updateModeUI();
   updateAuthUi();
   finishOauthFlowIfPresent().catch((error) => {
