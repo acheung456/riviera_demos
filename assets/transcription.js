@@ -77,11 +77,16 @@ if (form) {
     const serialized = JSON.stringify(pkceState);
     window.localStorage.setItem(PKCE_STORAGE_KEY, serialized);
     window.sessionStorage.setItem(PKCE_STORAGE_KEY, serialized);
+    window.name = `${PKCE_STORAGE_KEY}:${serialized}`;
   }
 
   function loadPkceState() {
     const raw =
-      window.localStorage.getItem(PKCE_STORAGE_KEY) || window.sessionStorage.getItem(PKCE_STORAGE_KEY);
+      window.localStorage.getItem(PKCE_STORAGE_KEY) ||
+      window.sessionStorage.getItem(PKCE_STORAGE_KEY) ||
+      (window.name.startsWith(`${PKCE_STORAGE_KEY}:`)
+        ? window.name.slice(`${PKCE_STORAGE_KEY}:`.length)
+        : "");
 
     if (!raw) {
       return null;
@@ -98,6 +103,9 @@ if (form) {
   function clearPkceState() {
     window.localStorage.removeItem(PKCE_STORAGE_KEY);
     window.sessionStorage.removeItem(PKCE_STORAGE_KEY);
+    if (window.name.startsWith(`${PKCE_STORAGE_KEY}:`)) {
+      window.name = "";
+    }
   }
 
   function clearAuth() {
