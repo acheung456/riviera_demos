@@ -6,6 +6,7 @@ const AUTH_STORAGE_KEY = "riviera_demo_dropbox_auth";
 const PKCE_STORAGE_KEY = "riviera_demo_dropbox_pkce";
 const OAUTH_POPUP_NAME = "riviera-dropbox-oauth";
 const OAUTH_MESSAGE_TYPE = "riviera-dropbox-oauth-result";
+const TRANSCRIPT_POLL_INTERVAL_MS = 15000;
 const REQUIRED_SCOPES = ["files.content.read", "files.content.write"];
 
 const form = document.querySelector("#transcription-form");
@@ -34,6 +35,15 @@ if (form) {
   let latestJson = "";
   let authState = loadStoredAuth();
   let oauthPopup = null;
+
+  class RetryableApiError extends Error {
+    constructor(message, options = {}) {
+      super(message);
+      this.name = "RetryableApiError";
+      this.status = options.status || 0;
+      this.retryAfterMs = options.retryAfterMs || 0;
+    }
+  }
 
   function getDropboxAppKey() {
     return runtimeConfig.dropboxAppKey || "";
@@ -350,12 +360,25 @@ if (form) {
     }
 
     if (!response.ok) {
+      const retryAfterHeader = response.headers.get("retry-after");
+      const retryAfterSeconds = Number(retryAfterHeader);
+      const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? retryAfterSeconds * 1000
+        : 0;
       const errorMessage =
         parsed?.error_summary ||
         parsed?.error_description ||
         parsed?.error ||
         parsed?.raw ||
         `${response.status} ${response.statusText}`;
+
+      if (response.status === 429) {
+        throw new RetryableApiError(`${errorPrefix}: ${errorMessage}`, {
+          status: response.status,
+          retryAfterMs,
+        });
+      }
+
       throw new Error(`${errorPrefix}: ${errorMessage}`);
     }
 
@@ -534,24 +557,38 @@ if (form) {
   }
 
   async function pollTranscript(accessToken, asyncJobId) {
-    let delayMs = 2000;
-
     while (true) {
       pushStatus(`Checking job ${asyncJobId}...`);
       setStatus("Polling", "progress");
 
-      const response = await apiFetch(
-        `${DROPBOX_API_BASE}/riviera/get_transcript_async/check`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+      let response;
+      try {
+        response = await apiFetch(
+          `${DROPBOX_API_BASE}/riviera/get_transcript_async/check`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ async_job_id: asyncJobId }),
           },
-          body: JSON.stringify({ async_job_id: asyncJobId }),
-        },
-        "Failed while polling transcription",
-      );
+          "Failed while polling transcription",
+        );
+      } catch (error) {
+        if (error instanceof RetryableApiError && error.status === 429) {
+          const retryDelayMs = Math.max(error.retryAfterMs || 0, TRANSCRIPT_POLL_INTERVAL_MS);
+          pushStatus(
+            `Rate limited while polling. Waiting ${Math.round(retryDelayMs / 1000)} seconds before retrying...`,
+          );
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, retryDelayMs);
+          });
+          continue;
+        }
+
+        throw error;
+      }
 
       if (response[".tag"] === "complete") {
         pushStatus("Transcription complete.");
@@ -568,9 +605,8 @@ if (form) {
       }
 
       await new Promise((resolve) => {
-        window.setTimeout(resolve, delayMs);
+        window.setTimeout(resolve, TRANSCRIPT_POLL_INTERVAL_MS);
       });
-      delayMs = Math.min(delayMs * 2, 30000);
     }
   }
 
