@@ -42,6 +42,16 @@ if (form) {
       this.name = "RetryableApiError";
       this.status = options.status || 0;
       this.retryAfterMs = options.retryAfterMs || 0;
+      this.details = options.details || null;
+    }
+  }
+
+  class ApiRequestError extends Error {
+    constructor(message, options = {}) {
+      super(message);
+      this.name = "ApiRequestError";
+      this.status = options.status || 0;
+      this.details = options.details || null;
     }
   }
 
@@ -376,10 +386,14 @@ if (form) {
         throw new RetryableApiError(`${errorPrefix}: ${errorMessage}`, {
           status: response.status,
           retryAfterMs,
+          details: parsed,
         });
       }
 
-      throw new Error(`${errorPrefix}: ${errorMessage}`);
+      throw new ApiRequestError(`${errorPrefix}: ${errorMessage}`, {
+        status: response.status,
+        details: parsed,
+      });
     }
 
     return parsed;
@@ -734,6 +748,8 @@ if (form) {
         JSON.stringify(
           {
             error: error.message,
+            status: error.status || null,
+            details: error.details || null,
           },
           null,
           2,
