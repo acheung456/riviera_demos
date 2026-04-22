@@ -538,11 +538,34 @@ if (form) {
     );
   }
 
+  async function waitForRateLimitWindow(delayMs, reason) {
+    pushStatus(`${reason} Waiting ${Math.round(delayMs / 1000)} seconds before retrying...`);
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, delayMs);
+    });
+  }
+
+  async function apiFetchWithRateLimitRetry(url, options, errorPrefix, retryContext) {
+    while (true) {
+      try {
+        return await apiFetch(url, options, errorPrefix);
+      } catch (error) {
+        if (error instanceof RetryableApiError && error.status === 429) {
+          const retryDelayMs = Math.max(error.retryAfterMs || 0, TRANSCRIPT_POLL_INTERVAL_MS);
+          await waitForRateLimitWindow(retryDelayMs, retryContext);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
   async function launchTranscript(accessToken, payload) {
     pushStatus("Starting async transcript job...");
     setStatus("Launching", "progress");
 
-    return apiFetch(
+    return apiFetchWithRateLimitRetry(
       `${DROPBOX_API_BASE}/riviera/get_transcript_async`,
       {
         method: "POST",
@@ -553,42 +576,33 @@ if (form) {
         body: JSON.stringify(payload),
       },
       "Failed to launch transcription",
+      "Rate limited while launching the transcript job.",
     );
   }
 
   async function pollTranscript(accessToken, asyncJobId) {
+    await waitForRateLimitWindow(
+      TRANSCRIPT_POLL_INTERVAL_MS,
+      "Async job created. Respecting the API rate limit before the first status check.",
+    );
+
     while (true) {
       pushStatus(`Checking job ${asyncJobId}...`);
       setStatus("Polling", "progress");
 
-      let response;
-      try {
-        response = await apiFetch(
-          `${DROPBOX_API_BASE}/riviera/get_transcript_async/check`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ async_job_id: asyncJobId }),
+      const response = await apiFetchWithRateLimitRetry(
+        `${DROPBOX_API_BASE}/riviera/get_transcript_async/check`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
-          "Failed while polling transcription",
-        );
-      } catch (error) {
-        if (error instanceof RetryableApiError && error.status === 429) {
-          const retryDelayMs = Math.max(error.retryAfterMs || 0, TRANSCRIPT_POLL_INTERVAL_MS);
-          pushStatus(
-            `Rate limited while polling. Waiting ${Math.round(retryDelayMs / 1000)} seconds before retrying...`,
-          );
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, retryDelayMs);
-          });
-          continue;
-        }
-
-        throw error;
-      }
+          body: JSON.stringify({ async_job_id: asyncJobId }),
+        },
+        "Failed while polling transcription",
+        "Rate limited while polling the transcript job.",
+      );
 
       if (response[".tag"] === "complete") {
         pushStatus("Transcription complete.");
