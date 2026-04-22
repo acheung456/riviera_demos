@@ -73,10 +73,37 @@ if (form) {
     window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
   }
 
+  function storePkceState(pkceState) {
+    const serialized = JSON.stringify(pkceState);
+    window.localStorage.setItem(PKCE_STORAGE_KEY, serialized);
+    window.sessionStorage.setItem(PKCE_STORAGE_KEY, serialized);
+  }
+
+  function loadPkceState() {
+    const raw =
+      window.localStorage.getItem(PKCE_STORAGE_KEY) || window.sessionStorage.getItem(PKCE_STORAGE_KEY);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      clearPkceState();
+      return null;
+    }
+  }
+
+  function clearPkceState() {
+    window.localStorage.removeItem(PKCE_STORAGE_KEY);
+    window.sessionStorage.removeItem(PKCE_STORAGE_KEY);
+  }
+
   function clearAuth() {
     authState = null;
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    window.sessionStorage.removeItem(PKCE_STORAGE_KEY);
+    clearPkceState();
   }
 
   function getAccessToken() {
@@ -208,14 +235,12 @@ if (form) {
     const state = createRandomString(32);
     const redirectUri = getRedirectUri();
 
-    window.sessionStorage.setItem(
-      PKCE_STORAGE_KEY,
-      JSON.stringify({
-        codeVerifier,
-        state,
-        redirectUri,
-      }),
-    );
+    storePkceState({
+      codeVerifier,
+      state,
+      redirectUri,
+      createdAt: Date.now(),
+    });
 
     const params = new URLSearchParams({
       client_id: appKey,
@@ -275,17 +300,15 @@ if (form) {
     }
 
     const appKey = getDropboxAppKey();
-    const pkceStateRaw = window.sessionStorage.getItem(PKCE_STORAGE_KEY);
+    const pkceState = loadPkceState();
 
-    if (!appKey || !pkceStateRaw) {
+    if (!appKey || !pkceState) {
       resetStatusLog();
       setStatus("Error", "danger");
       pushStatus("Missing PKCE state. Start the Dropbox connection flow again.");
       window.history.replaceState({}, document.title, getRedirectUri());
       return;
     }
-
-    const pkceState = JSON.parse(pkceStateRaw);
 
     if (pkceState.state !== state) {
       resetStatusLog();
@@ -335,7 +358,7 @@ if (form) {
       setStatus("Error", "danger");
       pushStatus(error.message);
     } finally {
-      window.sessionStorage.removeItem(PKCE_STORAGE_KEY);
+      clearPkceState();
       window.history.replaceState({}, document.title, getRedirectUri());
       updateAuthUi();
     }
