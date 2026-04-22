@@ -210,6 +210,53 @@ if (form) {
     return name.replace(/[^a-zA-Z0-9._-]/g, "-");
   }
 
+  function normalizeMediaUrl(input) {
+    let parsedUrl;
+
+    try {
+      parsedUrl = new URL(input);
+    } catch (error) {
+      return {
+        originalUrl: input,
+        resolvedUrl: input,
+        transformed: false,
+      };
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isDropboxShareHost =
+      hostname === "www.dropbox.com" ||
+      hostname === "dropbox.com" ||
+      hostname.endsWith(".dropbox.com");
+
+    if (!isDropboxShareHost) {
+      return {
+        originalUrl: input,
+        resolvedUrl: parsedUrl.toString(),
+        transformed: false,
+      };
+    }
+
+    const isSharePath = parsedUrl.pathname.startsWith("/s/") || parsedUrl.pathname.startsWith("/scl/fi/");
+
+    if (!isSharePath) {
+      return {
+        originalUrl: input,
+        resolvedUrl: parsedUrl.toString(),
+        transformed: false,
+      };
+    }
+
+    parsedUrl.searchParams.delete("dl");
+    parsedUrl.searchParams.set("raw", "1");
+
+    return {
+      originalUrl: input,
+      resolvedUrl: parsedUrl.toString(),
+      transformed: true,
+    };
+  }
+
   function toBase64Url(bytes) {
     let binary = "";
     bytes.forEach((byte) => {
@@ -569,10 +616,15 @@ if (form) {
           throw new Error("A media URL is required for URL mode.");
         }
 
+        const normalizedUrl = normalizeMediaUrl(mediaUrl);
+
         fileIdOrUrl = {
           ".tag": "url",
-          url: mediaUrl,
+          url: normalizedUrl.resolvedUrl,
         };
+        if (normalizedUrl.transformed) {
+          pushStatus("Converted Dropbox shared link into a direct-render URL.");
+        }
         pushStatus("Prepared remote URL payload.");
       } else {
         const file = mediaFileInput.files?.[0];
