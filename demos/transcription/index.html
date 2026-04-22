@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riviera Transcription Demo</title>
+    <meta
+      name="description"
+      content="Submit a URL or upload a file and transcribe it with Riviera's async transcript API."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23c55f2d'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-size='34' font-family='Georgia,serif' fill='white'%3ER%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/styles.css" />
+  </head>
+  <body class="site-shell demo-shell">
+    <div class="announcement-bar">
+      <span>Preview API route</span>
+      <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">
+        View official docs
+      </a>
+    </div>
+
+    <header class="topbar page-width">
+      <a class="brand" href="../../">
+        <span class="brand-mark">R</span>
+        <span>Riviera</span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="../../">All demos</a>
+        <a href="#demo">Try it</a>
+        <a href="#notes">Notes</a>
+      </nav>
+    </header>
+
+    <main class="page-width">
+      <section class="hero hero-demo">
+        <div class="hero-copy">
+          <div class="eyebrow">Demo 01</div>
+          <h1>
+            Transcribe media with
+            <span>Riviera Async</span>
+          </h1>
+          <p class="hero-text">
+            Paste a media URL or upload a local file, launch a transcription
+            job, and watch the result stream through the async lifecycle from
+            submitted to complete.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#demo">Start a transcription</a>
+            <a class="button button-secondary" href="#notes">Read implementation notes</a>
+          </div>
+          <div class="hero-metrics" aria-label="API facts">
+            <div>
+              <strong>POST</strong>
+              <span>/2/riviera/get_transcript_async</span>
+            </div>
+            <div>
+              <strong>Check</strong>
+              <span>/2/riviera/get_transcript_async/check</span>
+            </div>
+            <div>
+              <strong>Union</strong>
+              <span>path, file_id, or url</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="demo" class="demo-workbench">
+        <div class="form-panel glass-card">
+          <div class="panel-header">
+            <div>
+              <div class="eyebrow">Live request</div>
+              <h2>Launch a transcript job</h2>
+            </div>
+            <span class="pill pill-warm">Client-side demo</span>
+          </div>
+
+          <section class="auth-card">
+            <div class="auth-copy">
+              <span class="eyebrow">Dropbox OAuth</span>
+              <h3>Connect once, then transcribe</h3>
+              <p id="auth-description">
+                This demo uses Dropbox OAuth with PKCE in the browser. Connect
+                your account to enable URL and upload flows without pasting an
+                access token manually.
+              </p>
+            </div>
+            <div class="auth-actions">
+              <button class="button button-primary" id="connect-button" type="button">
+                Connect Dropbox
+              </button>
+              <button class="button button-secondary is-hidden" id="disconnect-button" type="button">
+                Disconnect
+              </button>
+            </div>
+            <div id="auth-meta" class="auth-meta">
+              Not connected.
+            </div>
+          </section>
+
+          <form id="transcription-form" class="transcription-form">
+            <fieldset class="mode-switch">
+              <legend>Input type</legend>
+              <label class="mode-option">
+                <input type="radio" name="inputMode" value="url" checked />
+                <span>Remote URL</span>
+              </label>
+              <label class="mode-option">
+                <input type="radio" name="inputMode" value="file" />
+                <span>Local file upload</span>
+              </label>
+            </fieldset>
+
+            <label class="field" data-mode-panel="url">
+              <span>Media URL</span>
+              <input
+                id="media-url"
+                name="mediaUrl"
+                type="url"
+                placeholder="https://example.com/meeting.mp3"
+              />
+              <small>Best for public audio or video assets that Dropbox can fetch.</small>
+            </label>
+
+            <label class="field is-hidden" data-mode-panel="file">
+              <span>Media file</span>
+              <input id="media-file" name="mediaFile" type="file" accept="audio/*,video/*" />
+              <small>
+                The file is uploaded to Dropbox first, then transcribed using
+                the returned file ID.
+              </small>
+            </label>
+
+            <label class="field field-inline">
+              <span>Timestamp level</span>
+              <select id="timestamp-level" name="timestampLevel">
+                <option value="word" selected>word</option>
+                <option value="unknown">unknown</option>
+              </select>
+            </label>
+
+            <div class="form-actions">
+              <button class="button button-primary" id="submit-button" type="submit">
+                Start transcription
+              </button>
+              <button class="button button-secondary" id="reset-button" type="button">
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="results-panel">
+          <section class="glass-card status-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Status</div>
+                <h2>Job lifecycle</h2>
+              </div>
+              <span id="status-pill" class="pill pill-neutral">Idle</span>
+            </div>
+            <ol id="status-log" class="status-log">
+              <li>Waiting for input.</li>
+            </ol>
+          </section>
+
+          <section class="glass-card output-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Transcript</div>
+                <h2>Readable output</h2>
+              </div>
+              <button class="button button-ghost" id="copy-transcript" type="button">
+                Copy text
+              </button>
+            </div>
+            <div id="transcript-output" class="output-box empty-state">
+              Transcript text will appear here after the async job completes.
+            </div>
+          </section>
+
+          <section class="glass-card output-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Response</div>
+                <h2>Raw JSON</h2>
+              </div>
+              <button class="button button-ghost" id="copy-json" type="button">
+                Copy JSON
+              </button>
+            </div>
+            <pre id="json-output" class="output-box empty-state">No response yet.</pre>
+          </section>
+        </div>
+      </section>
+
+      <section id="notes" class="section notes-section">
+        <div class="section-heading">
+          <div class="eyebrow">Implementation notes</div>
+          <h2>How this static demo works</h2>
+        </div>
+        <div class="notes-grid">
+          <article class="note-card">
+            <h3>OAuth setup</h3>
+            <p>
+              Register this page URL as a Dropbox redirect URI and provide the
+              app key through the Pages workflow configuration. The deployed
+              site uses PKCE, so no client secret is exposed in the browser.
+            </p>
+          </article>
+          <article class="note-card">
+            <h3>URL mode</h3>
+            <p>
+              Sends <code>{ ".tag": "url", "url": "..." }</code> in
+              <code>file_id_or_url</code> and starts the async transcript job
+              directly.
+            </p>
+          </article>
+          <article class="note-card">
+            <h3>File mode</h3>
+            <p>
+              Uploads the file to Dropbox first, then uses the returned
+              <code>file_id</code> to start transcription. That keeps the demo
+              browser-only and GitHub Pages compatible.
+            </p>
+          </article>
+          <article class="note-card">
+            <h3>Polling</h3>
+            <p>
+              Checks the async job until Riviera returns
+              <code>complete</code>, <code>failed</code>, or an unexpected
+              state.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="../../assets/runtime-config.js"></script>
+    <script src="../../assets/transcription.js" defer></script>
+  </body>
+</html>
