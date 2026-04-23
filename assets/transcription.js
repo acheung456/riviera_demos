@@ -575,17 +575,23 @@ if (form) {
     }
   }
 
+  function buildDropboxCorsHackUrl(path, accessToken) {
+    const url = new URL(`${DROPBOX_API_BASE}${path}`);
+    url.searchParams.set("authorization", `Bearer ${accessToken}`);
+    url.searchParams.set("reject_cors_preflight", "true");
+    return url.toString();
+  }
+
   async function launchTranscript(accessToken, payload) {
     pushStatus("Starting async transcript job...");
     setStatus("Launching", "progress");
 
     return apiFetchWithRateLimitRetry(
-      `${DROPBOX_API_BASE}/riviera/get_transcript_async`,
+      buildDropboxCorsHackUrl("/riviera/get_transcript_async", accessToken),
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain; charset=dropbox-cors-hack",
         },
         body: JSON.stringify(payload),
       },
@@ -605,12 +611,11 @@ if (form) {
       setStatus("Polling", "progress");
 
       const response = await apiFetchWithRateLimitRetry(
-        `${DROPBOX_API_BASE}/riviera/get_transcript_async/check`,
+        buildDropboxCorsHackUrl("/riviera/get_transcript_async/check", accessToken),
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain; charset=dropbox-cors-hack",
           },
           body: JSON.stringify({ async_job_id: asyncJobId }),
         },
