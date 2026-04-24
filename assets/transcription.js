@@ -14,28 +14,28 @@ const PRESET_MEDIA = [
     label: "The Ravens - AH",
     title: "The Ravens, read by AH",
     description: "A short LibriVox reading from the Internet Archive collection.",
-    url: "https://archive.org/download/theravens_2603.poem_librivox/01%20-%20The%20Ravens%20-%20read%20by%20AH.mp3",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/ravens_peabody_ah_128kb.mp3",
   },
   {
     id: "ravens-gln",
     label: "The Ravens - GLN",
     title: "The Ravens, read by GLN",
     description: "Another voice from the same public-domain poem recording set.",
-    url: "https://archive.org/download/theravens_2603.poem_librivox/09%20-%20The%20Ravens%20-%20read%20by%20GLN.mp3",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/ravens_peabody_gln_128kb.mp3",
   },
   {
     id: "ravens-pfs",
     label: "The Ravens - PFS",
     title: "The Ravens, read by PFS",
     description: "A slightly different reading pace to compare transcription output.",
-    url: "https://archive.org/download/theravens_2603.poem_librivox/15%20-%20The%20Ravens%20-%20read%20by%20PFS.mp3",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/ravens_peabody_pfs_128kb.mp3",
   },
   {
     id: "ravens-wja",
     label: "The Ravens - WJA",
     title: "The Ravens, read by WJA",
     description: "A final sample from the Archive.org page for quick testing.",
-    url: "https://archive.org/download/theravens_2603.poem_librivox/17%20-%20The%20Ravens%20-%20read%20by%20WJA.mp3",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/ravens_peabody_wja_128kb.mp3",
   },
 ];
 
