@@ -36,7 +36,7 @@
       <nav class="topnav" aria-label="Primary">
         <a href="../../">All demos</a>
         <a href="#demo">Try it</a>
-        <a href="#notes">Notes</a>
+        <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">Docs</a>
       </nav>
     </header>
 
@@ -54,7 +54,12 @@
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#demo">Start a transcription</a>
-            <a class="button button-secondary" href="#notes">See the flow</a>
+            <a
+              class="button button-secondary"
+              href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async"
+            >
+              View docs
+            </a>
           </div>
           <div class="hero-metrics" aria-label="API facts">
             <div>
@@ -128,6 +133,23 @@
               <small>Best for public audio or video assets that Dropbox can fetch.</small>
             </label>
 
+            <section class="field" data-mode-panel="url">
+              <span>Sample media</span>
+              <select id="preset-media" name="presetMedia">
+                <option value="">Choose a sample recording</option>
+              </select>
+              <small>Pick a sample from The Ravens or keep using your own URL above.</small>
+            </section>
+
+            <section class="media-preview is-hidden" id="preset-preview" data-mode-panel="url">
+              <div class="media-preview-copy">
+                <span class="eyebrow">Preview</span>
+                <h3 id="preset-title">Sample media</h3>
+                <p id="preset-description">Listen before transcribing.</p>
+              </div>
+              <audio id="preset-player" controls preload="none"></audio>
+            </section>
+
             <label class="field is-hidden" data-mode-panel="file">
               <span>Media file</span>
               <input id="media-file" name="mediaFile" type="file" accept="audio/*,video/*" />
@@ -140,8 +162,8 @@
             <label class="field field-inline">
               <span>Timestamp level</span>
               <select id="timestamp-level" name="timestampLevel">
-                <option value="word" selected>word</option>
-                <option value="sentence">sentence</option>
+                <option value="word">word</option>
+                <option value="sentence" selected>sentence</option>
               </select>
             </label>
 
@@ -198,43 +220,6 @@
         </div>
       </section>
 
-      <section id="notes" class="section notes-section">
-        <div class="section-heading">
-          <div class="eyebrow">Request flow</div>
-          <h2>How the demo moves</h2>
-        </div>
-        <div class="flow-diagram glass-card" aria-label="Demo request flow">
-          <div class="flow-step">
-            <span class="flow-index">01</span>
-            <h3>Connect</h3>
-            <p>Sign in with Dropbox in the browser.</p>
-          </div>
-          <div class="flow-arrow" aria-hidden="true">→</div>
-          <div class="flow-step">
-            <span class="flow-index">02</span>
-            <h3>Choose input</h3>
-            <p>Paste a URL or upload a local file.</p>
-          </div>
-          <div class="flow-arrow" aria-hidden="true">→</div>
-          <div class="flow-step">
-            <span class="flow-index">03</span>
-            <h3>Launch</h3>
-            <p>Send the async transcript request to Riviera.</p>
-          </div>
-          <div class="flow-arrow" aria-hidden="true">→</div>
-          <div class="flow-step">
-            <span class="flow-index">04</span>
-            <h3>Check</h3>
-            <p>Poll for completion and render the result.</p>
-          </div>
-          <div class="flow-arrow" aria-hidden="true">→</div>
-          <div class="flow-step">
-            <span class="flow-index">05</span>
-            <h3>Read</h3>
-            <p>Show transcript text and the raw response.</p>
-          </div>
-        </div>
-      </section>
     </main>
 
     <script src="../../assets/runtime-config.js"></script>

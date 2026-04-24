@@ -8,6 +8,36 @@ const OAUTH_POPUP_NAME = "riviera-dropbox-oauth";
 const OAUTH_MESSAGE_TYPE = "riviera-dropbox-oauth-result";
 const TRANSCRIPT_POLL_INTERVAL_MS = 15000;
 const REQUIRED_SCOPES = ["files.content.read", "files.content.write"];
+const PRESET_MEDIA = [
+  {
+    id: "ravens-ah",
+    label: "The Ravens - AH",
+    title: "The Ravens, read by AH",
+    description: "A short LibriVox reading from the Internet Archive collection.",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/01%20-%20The%20Ravens%20-%20read%20by%20AH.mp3",
+  },
+  {
+    id: "ravens-gln",
+    label: "The Ravens - GLN",
+    title: "The Ravens, read by GLN",
+    description: "Another voice from the same public-domain poem recording set.",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/09%20-%20The%20Ravens%20-%20read%20by%20GLN.mp3",
+  },
+  {
+    id: "ravens-pfs",
+    label: "The Ravens - PFS",
+    title: "The Ravens, read by PFS",
+    description: "A slightly different reading pace to compare transcription output.",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/15%20-%20The%20Ravens%20-%20read%20by%20PFS.mp3",
+  },
+  {
+    id: "ravens-wja",
+    label: "The Ravens - WJA",
+    title: "The Ravens, read by WJA",
+    description: "A final sample from the Archive.org page for quick testing.",
+    url: "https://archive.org/download/theravens_2603.poem_librivox/17%20-%20The%20Ravens%20-%20read%20by%20WJA.mp3",
+  },
+];
 
 const form = document.querySelector("#transcription-form");
 
@@ -19,6 +49,11 @@ if (form) {
   const authMeta = document.querySelector("#auth-meta");
   const mediaUrlInput = document.querySelector("#media-url");
   const mediaFileInput = document.querySelector("#media-file");
+  const presetMediaInput = document.querySelector("#preset-media");
+  const presetPreview = document.querySelector("#preset-preview");
+  const presetTitle = document.querySelector("#preset-title");
+  const presetDescription = document.querySelector("#preset-description");
+  const presetPlayer = document.querySelector("#preset-player");
   const timestampLevelInput = document.querySelector("#timestamp-level");
   const modeInputs = Array.from(document.querySelectorAll('input[name="inputMode"]'));
   const statusPill = document.querySelector("#status-pill");
@@ -224,6 +259,51 @@ if (form) {
       mediaUrlInput.required = false;
       mediaFileInput.required = true;
     }
+  }
+
+  function getSelectedPreset() {
+    if (!presetMediaInput) {
+      return null;
+    }
+
+    return PRESET_MEDIA.find((item) => item.id === presetMediaInput.value) || null;
+  }
+
+  function updatePresetPreview() {
+    if (!presetPreview || !presetPlayer || !presetTitle || !presetDescription) {
+      return;
+    }
+
+    const preset = getSelectedPreset();
+
+    if (!preset) {
+      presetPreview.classList.add("is-hidden");
+      presetTitle.textContent = "Sample media";
+      presetDescription.textContent = "Listen before transcribing.";
+      presetPlayer.pause();
+      presetPlayer.removeAttribute("src");
+      presetPlayer.load();
+      return;
+    }
+
+    mediaUrlInput.value = preset.url;
+    presetTitle.textContent = preset.title;
+    presetDescription.textContent = preset.description;
+    presetPlayer.src = preset.url;
+    presetPreview.classList.remove("is-hidden");
+  }
+
+  function populatePresetMedia() {
+    if (!presetMediaInput) {
+      return;
+    }
+
+    PRESET_MEDIA.forEach((preset) => {
+      const option = document.createElement("option");
+      option.value = preset.id;
+      option.textContent = preset.label;
+      presetMediaInput.appendChild(option);
+    });
   }
 
   function sanitizeFilename(name) {
@@ -747,6 +827,7 @@ if (form) {
   resetButton.addEventListener("click", () => {
     form.reset();
     updateModeUI();
+    updatePresetPreview();
     resetStatusLog();
     setStatus("Idle");
     pushStatus("Waiting for input.");
@@ -758,9 +839,12 @@ if (form) {
   modeInputs.forEach((input) => {
     input.addEventListener("change", updateModeUI);
   });
+  presetMediaInput?.addEventListener("change", updatePresetPreview);
 
   window.addEventListener("message", handleOauthMessage);
+  populatePresetMedia();
   updateModeUI();
+  updatePresetPreview();
   updateAuthUi();
   finishOauthFlowIfPresent().catch((error) => {
     setStatus("Error", "danger");
