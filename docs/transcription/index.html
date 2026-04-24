@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riviera Transcription Docs</title>
+    <meta
+      name="description"
+      content="Next gen docs for Riviera async transcription with a modern API reference layout."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23c55f2d'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-size='34' font-family='Georgia,serif' fill='white'%3ER%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../assets/styles.css" />
+  </head>
+  <body class="site-shell docs-shell">
+    <div class="announcement-bar">
+      <span>Reference split</span>
+      <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">
+        Official docs
+      </a>
+      <a href="../../demos/transcription/">Live demo</a>
+    </div>
+
+    <header class="topbar page-width">
+      <a class="brand" href="../../">
+        <span class="brand-mark">R</span>
+        <span>Riviera</span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="../../">All demos</a>
+        <a href="../../demos/transcription/">Demo</a>
+        <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">
+          Official docs
+        </a>
+      </nav>
+    </header>
+
+    <main class="page-width docs-page">
+      <section class="docs-hero">
+        <div>
+          <div class="eyebrow">Next gen docs</div>
+          <h1>Async transcription with <span>Riviera</span></h1>
+          <p class="hero-text">
+            A cleaner reference surface for the Riviera transcript workflow, with
+            focused notes for launching a job, polling it, and understanding the
+            input union used by the API.
+          </p>
+        </div>
+        <div class="docs-hero-actions">
+          <a class="button button-primary" href="../../demos/transcription/">Open live demo</a>
+          <a
+            class="button button-ghost"
+            href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async"
+          >
+            Official docs
+          </a>
+        </div>
+      </section>
+
+      <section class="docs-layout">
+        <aside class="docs-sidebar glass-card">
+          <div class="docs-sidebar-group">
+            <div class="micro-label">Overview</div>
+            <a href="#overview">What this endpoint does</a>
+            <a href="#auth">Authentication</a>
+            <a href="#inputs">Input union</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <div class="micro-label">Operations</div>
+            <a href="#launch">POST Start transcript job</a>
+            <a href="#check">POST Check transcript job</a>
+            <a href="#responses">Responses</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <div class="micro-label">Reference</div>
+            <a href="#fields">Field guide</a>
+            <a href="#errors">Errors and retries</a>
+            <a href="#links">Related links</a>
+          </div>
+        </aside>
+
+        <div class="docs-content">
+          <section id="overview" class="docs-section glass-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Overview</div>
+                <h2>What this endpoint does</h2>
+              </div>
+              <span class="pill pill-warm">Async workflow</span>
+            </div>
+            <p>
+              <code>/2/riviera/get_transcript_async</code> starts a transcript job for
+              media supplied as a Dropbox path, Dropbox file ID, or public URL.
+              The endpoint can return a completed result immediately, or an
+              <code>async_job_id</code> that you poll with
+              <code>/2/riviera/get_transcript_async/check</code>.
+            </p>
+            <div class="docs-callout">
+              This page is a product-style reference layer. Dropbox remains the source of truth for the official contract.
+            </div>
+          </section>
+
+          <section id="auth" class="docs-section glass-card">
+            <div class="eyebrow">Authentication</div>
+            <h2>Browser-friendly auth notes</h2>
+            <p>
+              The live demo in this repo uses Dropbox OAuth with PKCE. For static
+              browser requests, we send the access token in the request URL using
+              Dropbox's CORS-safe pattern rather than the usual
+              <code>Authorization</code> header.
+            </p>
+            <ul class="feature-list">
+              <li>Scopes used by the demo: <code>files.content.read</code> and <code>files.content.write</code></li>
+              <li>URL mode sends the remote media URL directly to Riviera</li>
+              <li>File mode uploads to Dropbox first and then uses the returned file identifier</li>
+            </ul>
+          </section>
+
+          <section id="inputs" class="docs-section glass-card">
+            <div class="eyebrow">Input union</div>
+            <h2><code>file_id_or_url</code> can take three forms</h2>
+            <div class="docs-table">
+              <div class="docs-row docs-row-head">
+                <div>Tag</div>
+                <div>Shape</div>
+                <div>When to use it</div>
+              </div>
+              <div class="docs-row">
+                <div><code>path</code></div>
+                <div><code>{ ".tag": "path", "path": "/Apps/..." }</code></div>
+                <div>Useful when the media already lives in Dropbox.</div>
+              </div>
+              <div class="docs-row">
+                <div><code>file_id</code></div>
+                <div><code>{ ".tag": "file_id", "file_id": "id:..." }</code></div>
+                <div>Best after an upload step where Dropbox returns a stable file identifier.</div>
+              </div>
+              <div class="docs-row">
+                <div><code>url</code></div>
+                <div><code>{ ".tag": "url", "url": "https://..." }</code></div>
+                <div>Ideal for public media that Dropbox can fetch remotely.</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="launch" class="docs-section glass-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Operation</div>
+                <h2>POST Start transcript job</h2>
+              </div>
+              <span class="pill pill-progress">Primary endpoint</span>
+            </div>
+            <p>
+              Send a request body with <code>file_id_or_url</code> and
+              <code>timestamp_level</code>. In this demo, the selectable
+              timestamp levels are <code>word</code> and <code>sentence</code>.
+            </p>
+            <div class="docs-block">
+              <div class="micro-label">Required body</div>
+              <pre><code>{
+  "file_id_or_url": {
+    ".tag": "url",
+    "url": "https://archive.org/download/theravens_2603.poem_librivox/01%20-%20The%20Ravens%20-%20read%20by%20AH.mp3"
+  },
+  "timestamp_level": "sentence"
+}</code></pre>
+            </div>
+          </section>
+
+          <section id="check" class="docs-section glass-card">
+            <div class="panel-header">
+              <div>
+                <div class="eyebrow">Operation</div>
+                <h2>POST Check transcript job</h2>
+              </div>
+              <span class="pill pill-neutral">Polling endpoint</span>
+            </div>
+            <p>
+              If the launch call returns an <code>async_job_id</code>, poll the
+              check endpoint with that identifier. The current demo waits at least
+              fifteen seconds between checks and treats <code>429</code> as
+              retryable.
+            </p>
+            <div class="docs-block">
+              <div class="micro-label">Check body</div>
+              <pre><code>{
+  "async_job_id": "1234567890"
+}</code></pre>
+            </div>
+          </section>
+
+          <section id="responses" class="docs-section glass-card">
+            <div class="eyebrow">Responses</div>
+            <h2>Common response shapes</h2>
+            <div class="docs-response-grid">
+              <div class="docs-mini-card">
+                <div class="micro-label">Immediate success</div>
+                <p><code>.tag = "complete"</code> with transcript content in the response.</p>
+              </div>
+              <div class="docs-mini-card">
+                <div class="micro-label">Async launch</div>
+                <p><code>.tag = "async_job_id"</code> plus <code>async_job_id</code>.</p>
+              </div>
+              <div class="docs-mini-card">
+                <div class="micro-label">Still running</div>
+                <p><code>.tag = "in_progress"</code> from the check endpoint.</p>
+              </div>
+              <div class="docs-mini-card">
+                <div class="micro-label">Failure</div>
+                <p><code>.tag = "failed"</code> or a non-2xx API error payload.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="fields" class="docs-section glass-card">
+            <div class="eyebrow">Field guide</div>
+            <h2>Parameters worth noticing</h2>
+            <div class="docs-table">
+              <div class="docs-row docs-row-head">
+                <div>Field</div>
+                <div>Type</div>
+                <div>Notes</div>
+              </div>
+              <div class="docs-row">
+                <div><code>file_id_or_url</code></div>
+                <div>Tagged union</div>
+                <div>Accepts a Dropbox path, a Dropbox file ID, or a remote URL.</div>
+              </div>
+              <div class="docs-row">
+                <div><code>timestamp_level</code></div>
+                <div>String</div>
+                <div>The demo supports <code>word</code> and <code>sentence</code>.</div>
+              </div>
+              <div class="docs-row">
+                <div><code>async_job_id</code></div>
+                <div>String</div>
+                <div>Returned from the launch endpoint when polling is required.</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="errors" class="docs-section glass-card">
+            <div class="eyebrow">Errors and retries</div>
+            <h2>What the demo handles for you</h2>
+            <ul class="feature-list">
+              <li><code>429 Too Many Requests</code> is treated as retryable on both Riviera endpoints</li>
+              <li>The check endpoint is spaced at a minimum fifteen-second interval</li>
+              <li>Raw JSON is surfaced in the UI to help debug failed requests</li>
+              <li>CORS-safe request formatting is used for the browser-based demo flow</li>
+            </ul>
+          </section>
+
+          <section id="links" class="docs-section glass-card">
+            <div class="eyebrow">Related links</div>
+            <h2>Choose the reference style you want</h2>
+            <div class="docs-link-grid">
+              <a class="docs-link-card" href="../../demos/transcription/">
+                <strong>Live demo</strong>
+                <span>Use the transcription UI directly.</span>
+              </a>
+              <a
+                class="docs-link-card"
+                href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async"
+              >
+                <strong>Official docs</strong>
+                <span>Dropbox’s canonical endpoint documentation.</span>
+              </a>
+            </div>
+          </section>
+        </div>
+
+        <aside class="docs-rail">
+          <div class="glass-card docs-rail-card docs-sticky">
+            <div class="micro-label">Request</div>
+            <h3>POST /2/riviera/get_transcript_async</h3>
+            <pre><code>{
+  "file_id_or_url": {
+    ".tag": "url",
+    "url": "https://example.com/audio.mp3"
+  },
+  "timestamp_level": "sentence"
+}</code></pre>
+          </div>
+
+          <div class="glass-card docs-rail-card">
+            <div class="micro-label">Response</div>
+            <h3>Async launch</h3>
+            <pre><code>{
+  ".tag": "async_job_id",
+  "async_job_id": "1234567890"
+}</code></pre>
+          </div>
+
+          <div class="glass-card docs-rail-card">
+            <div class="micro-label">Next step</div>
+            <h3>POST /2/riviera/get_transcript_async/check</h3>
+            <pre><code>{
+  "async_job_id": "1234567890"
+}</code></pre>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>

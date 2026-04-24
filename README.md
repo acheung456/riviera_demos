@@ -7,6 +7,9 @@ This repository is set up as a GitHub Pages-friendly collection of Riviera API d
 ```text
 /
 ├── index.html
+├── docs/
+│   └── transcription/
+│       └── index.html
 ├── assets/
 │   ├── styles.css
 │   └── transcription.js
@@ -18,6 +21,7 @@ This repository is set up as a GitHub Pages-friendly collection of Riviera API d
 ## Current demo
 
 - `demos/transcription/` shows how to call the Riviera async transcription API from a static page.
+- `docs/transcription/` provides a modern in-repo reference page for the same transcription flow.
 - URL mode sends `file_id_or_url` as `{ ".tag": "url", "url": "..." }`.
 - File mode uploads the selected file to Dropbox first, then sends the returned `file_id` into Riviera.
 - Authentication uses Dropbox OAuth code flow with PKCE in the browser.

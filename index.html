@@ -24,6 +24,7 @@
     <div class="announcement-bar">
       <span>Riviera demo collection</span>
       <a href="./demos/transcription/">Launch the transcription demo</a>
+      <a href="./docs/transcription/">Open next gen docs</a>
     </div>
 
     <header class="topbar page-width">
@@ -34,7 +35,8 @@
       <nav class="topnav" aria-label="Primary">
         <a href="#demos">Demos</a>
         <a href="#structure">Structure</a>
-        <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">API Docs</a>
+        <a href="./docs/transcription/">Next gen docs</a>
+        <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">Official docs</a>
       </nav>
     </header>
 
@@ -54,7 +56,8 @@
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="./demos/transcription/">Open transcription demo</a>
-            <a class="button button-secondary" href="#demos">See structure</a>
+            <a class="button button-secondary" href="./docs/transcription/">Next gen docs</a>
+            <a class="button button-ghost" href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">Official docs</a>
           </div>
           <div class="hero-metrics" aria-label="Highlights">
             <div>
@@ -113,23 +116,23 @@
             </p>
             <a href="./demos/transcription/">Explore demo</a>
           </article>
-          <article class="demo-card demo-card-muted">
-            <div class="card-kicker">Next slot</div>
-            <h3>Markdown Conversion</h3>
+          <article class="demo-card demo-card-featured">
+            <div class="card-kicker">Reference</div>
+            <h3>Next Gen Docs</h3>
             <p>
-              Space reserved for future Riviera document conversion pages using
-              the same shared foundation.
+              A more modern Riviera reference page with navigation, concise endpoint notes,
+              and request and response examples arranged like a product docs surface.
             </p>
-            <span>Coming next</span>
+            <a href="./docs/transcription/">Read docs</a>
           </article>
           <article class="demo-card demo-card-muted">
-            <div class="card-kicker">Pattern</div>
-            <h3>Shared Layout System</h3>
+            <div class="card-kicker">Source of truth</div>
+            <h3>Official Dropbox Docs</h3>
             <p>
-              Reusable styles, utility classes, and a consistent shell make it
-              easy to add more demos without redesigning from scratch.
+              The canonical Dropbox documentation remains the official reference
+              for the API surface and endpoint contract.
             </p>
-            <span>Already in place</span>
+            <a href="https://www.dropbox.com/developers/documentation/http/documentation#riviera-get_transcript_async">View official docs</a>
           </article>
         </div>
       </section>
@@ -142,6 +145,9 @@
         <div class="structure-card">
           <pre><code>/
 ├── index.html
+├── docs/
+│   └── transcription/
+│       └── index.html
 ├── assets/
 │   ├── styles.css
 │   └── transcription.js
