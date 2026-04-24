@@ -33,8 +33,8 @@ jobs:
         env:
           DROPBOX_APP_KEY: ${{ vars.DROPBOX_APP_KEY }}
         run: |
-          mkdir -p _site/assets _site/demos
-          cp -R assets demos _site/
+          mkdir -p _site/assets _site/demos _site/docs
+          cp -R assets demos docs _site/
           cp index.html _site/index.html
           cp 404.html _site/404.html
           printf 'window.RIVIERA_CONFIG = window.RIVIERA_CONFIG || {\n  dropboxAppKey: "%s",\n};\n' "${DROPBOX_APP_KEY}" > _site/assets/runtime-config.js
