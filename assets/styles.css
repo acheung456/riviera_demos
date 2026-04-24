@@ -567,6 +567,12 @@ select:focus {
   line-height: 1.65;
 }
 
+#json-output {
+  height: 220px;
+  min-height: 220px;
+  max-height: 220px;
+}
+
 pre.output-box {
   font-size: 0.92rem;
 }
