@@ -299,6 +299,10 @@ if (form) {
     }
 
     PRESET_MEDIA.forEach((preset) => {
+      if (presetMediaInput.querySelector(`option[value="${preset.id}"]`)) {
+        return;
+      }
+
       const option = document.createElement("option");
       option.value = preset.id;
       option.textContent = preset.label;
