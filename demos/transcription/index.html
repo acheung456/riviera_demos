@@ -46,29 +46,28 @@
           <div class="eyebrow">Demo 01</div>
           <h1>
             Transcribe media with
-            <span>Riviera Async</span>
+            <span>Riviera</span>
           </h1>
           <p class="hero-text">
-            Paste a media URL or upload a local file, launch a transcription
-            job, and watch the result stream through the async lifecycle from
-            submitted to complete.
+            Drop in a URL or file, run the transcript job, and watch the
+            status update live.
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#demo">Start a transcription</a>
-            <a class="button button-secondary" href="#notes">Read implementation notes</a>
+            <a class="button button-secondary" href="#notes">See the flow</a>
           </div>
           <div class="hero-metrics" aria-label="API facts">
             <div>
               <strong>POST</strong>
-              <span>/2/riviera/get_transcript_async</span>
+              <span class="metric-copy">/2/riviera/get_transcript_async</span>
             </div>
             <div>
               <strong>Check</strong>
-              <span>/2/riviera/get_transcript_async/check</span>
+              <span class="metric-copy">/2/riviera/get_transcript_async/check</span>
             </div>
             <div>
-              <strong>Union</strong>
-              <span>path, file_id, or url</span>
+              <strong>Input</strong>
+              <span class="metric-copy">path, file_id, or url</span>
             </div>
           </div>
         </div>
@@ -87,11 +86,9 @@
           <section class="auth-card">
             <div class="auth-copy">
               <span class="eyebrow">Dropbox OAuth</span>
-              <h3>Connect once, then transcribe</h3>
+              <h3>Connect Dropbox</h3>
               <p id="auth-description">
-                This demo uses Dropbox OAuth with PKCE in the browser. Connect
-                your account to enable URL and upload flows without pasting an
-                access token manually.
+                Connect Dropbox once to run URL or file-based transcriptions.
               </p>
             </div>
             <div class="auth-actions">
@@ -164,13 +161,11 @@
             <div class="panel-header">
               <div>
                 <div class="eyebrow">Status</div>
-                <h2>Job lifecycle</h2>
+                <h2>Current step</h2>
               </div>
               <span id="status-pill" class="pill pill-neutral">Idle</span>
             </div>
-            <ol id="status-log" class="status-log">
-              <li>Waiting for input.</li>
-            </ol>
+            <div id="status-log" class="status-log">Waiting for input.</div>
           </section>
 
           <section class="glass-card output-card">
@@ -205,42 +200,39 @@
 
       <section id="notes" class="section notes-section">
         <div class="section-heading">
-          <div class="eyebrow">Implementation notes</div>
-          <h2>How this static demo works</h2>
+          <div class="eyebrow">Request flow</div>
+          <h2>How the demo moves</h2>
         </div>
-        <div class="notes-grid">
-          <article class="note-card">
-            <h3>OAuth setup</h3>
-            <p>
-              Register this page URL as a Dropbox redirect URI and provide the
-              app key through the Pages workflow configuration. The deployed
-              site uses PKCE, so no client secret is exposed in the browser.
-            </p>
-          </article>
-          <article class="note-card">
-            <h3>URL mode</h3>
-            <p>
-              Sends <code>{ ".tag": "url", "url": "..." }</code> in
-              <code>file_id_or_url</code> and starts the async transcript job
-              directly.
-            </p>
-          </article>
-          <article class="note-card">
-            <h3>File mode</h3>
-            <p>
-              Uploads the file to Dropbox first, then uses the returned
-              <code>file_id</code> to start transcription. That keeps the demo
-              browser-only and GitHub Pages compatible.
-            </p>
-          </article>
-          <article class="note-card">
-            <h3>Polling</h3>
-            <p>
-              Checks the async job until Riviera returns
-              <code>complete</code>, <code>failed</code>, or an unexpected
-              state.
-            </p>
-          </article>
+        <div class="flow-diagram glass-card" aria-label="Demo request flow">
+          <div class="flow-step">
+            <span class="flow-index">01</span>
+            <h3>Connect</h3>
+            <p>Sign in with Dropbox in the browser.</p>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step">
+            <span class="flow-index">02</span>
+            <h3>Choose input</h3>
+            <p>Paste a URL or upload a local file.</p>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step">
+            <span class="flow-index">03</span>
+            <h3>Launch</h3>
+            <p>Send the async transcript request to Riviera.</p>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step">
+            <span class="flow-index">04</span>
+            <h3>Check</h3>
+            <p>Poll for completion and render the result.</p>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step">
+            <span class="flow-index">05</span>
+            <h3>Read</h3>
+            <p>Show transcript text and the raw response.</p>
+          </div>
         </div>
       </section>
     </main>

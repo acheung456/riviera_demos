@@ -167,6 +167,10 @@ a {
   font-size: clamp(3.5rem, 7vw, 6.6rem);
 }
 
+.hero-demo h1 {
+  max-width: 100%;
+}
+
 .hero h1 span {
   color: var(--brand-deep);
 }
@@ -191,11 +195,12 @@ a {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  max-width: 44rem;
+  max-width: 100%;
   margin-top: 2rem;
 }
 
 .hero-metrics div {
+  min-width: 0;
   padding: 1rem 1.1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -210,8 +215,11 @@ a {
 }
 
 .hero-metrics span {
+  display: block;
   color: var(--muted);
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .hero-panel {
@@ -456,7 +464,7 @@ a {
 .auth-card p {
   margin: 0.55rem 0 0;
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .auth-actions {
@@ -535,11 +543,16 @@ select:focus {
 }
 
 .status-log {
-  display: grid;
-  gap: 0.7rem;
+  display: flex;
+  align-items: center;
+  min-height: 3.75rem;
   margin: 1rem 0 0;
-  padding-left: 1.1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(34, 25, 14, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.86);
   color: var(--muted);
+  line-height: 1.5;
 }
 
 .output-box {
@@ -570,6 +583,55 @@ pre.output-box {
   padding-top: 0;
 }
 
+.flow-diagram {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 0.9rem;
+  align-items: stretch;
+  margin-top: 1.6rem;
+}
+
+.flow-step {
+  display: grid;
+  gap: 0.45rem;
+  grid-column: span 1;
+  min-width: 0;
+  padding: 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.78);
+}
+
+.flow-step h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.flow-step p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.flow-index {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  color: var(--brand-deep);
+  background: rgba(240, 184, 75, 0.24);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.flow-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--brand-deep);
+  font-size: 1.35rem;
+}
+
 @media (max-width: 980px) {
   .hero-home,
   .demo-workbench,
@@ -584,6 +646,19 @@ pre.output-box {
 
   .hero-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .flow-diagram {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-step,
+  .flow-arrow {
+    grid-column: auto;
+  }
+
+  .flow-arrow {
+    transform: rotate(90deg);
   }
 }
 

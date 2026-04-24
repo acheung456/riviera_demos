@@ -154,21 +154,23 @@ if (form) {
 
     if (!hasAppKey) {
       authDescription.textContent =
-        "Set window.RIVIERA_CONFIG.dropboxAppKey before deploying. The Pages workflow can generate runtime-config.js from a GitHub repository variable.";
-      authMeta.textContent = "Missing Dropbox app key configuration.";
+        "Add the Dropbox app key to enable this demo.";
+      authMeta.textContent = "Dropbox app key missing.";
       return;
     }
 
-    authDescription.textContent =
-      "This demo uses Dropbox OAuth with PKCE in the browser. Connect your account to enable URL and upload flows without pasting an access token manually.";
+    authDescription.textContent = "Connect Dropbox once to run URL or file-based transcriptions.";
 
     if (!connected) {
-      authMeta.textContent = `Not connected. Requested scopes: ${REQUIRED_SCOPES.join(", ")}.`;
+      authMeta.textContent = "Not connected.";
       return;
     }
 
     const expiresAt = new Date(authState.expiresAt);
-    authMeta.textContent = `Connected. Token expires at ${expiresAt.toLocaleString()}.`;
+    authMeta.textContent = `Connected until ${expiresAt.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    })}.`;
   }
 
   function setStatus(label, tone = "neutral") {
@@ -186,13 +188,11 @@ if (form) {
   }
 
   function pushStatus(message) {
-    const item = document.createElement("li");
-    item.textContent = message;
-    statusLog.appendChild(item);
+    statusLog.textContent = message;
   }
 
   function resetStatusLog() {
-    statusLog.innerHTML = "";
+    statusLog.textContent = "";
   }
 
   function setTranscript(text) {
